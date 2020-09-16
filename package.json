@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "test" : "jest",
     "start": "node src/index.js",
     "dev": "env-cmd -f ./config/dev.env nodemon src/index.js"
   },
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "env-cmd": "^10.1.0",
+    "jest": "^26.4.0",
     "nodemon": "^2.0.4"
   }
 }
