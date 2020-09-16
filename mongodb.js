@@ -4,7 +4,7 @@ const { MongoClient, ObjectID, ResumeToken } = require("mongodb");
 
 //// choose the URL you want to connect to
 ////used ip of the localhost 127.0.0.1 / followed by the port 27017
-const connectionURL = process.env.MONGODB_URL;
+const connectionURL = "127.0.0.1:2701";
 
 ///name of the data base that can be anything you want
 const databaseName = "task-manager";
