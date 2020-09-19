@@ -1,16 +1,24 @@
 const request = require('supertest')
 const app = require('../src/app')
+const jwt = require('jsonwebtoken')
+const mongoose = require('mongoose')
 const User = require('../src/models/user')
 
 
+const userOneID = new mongoose.Types.ObjectId()
+
 const userOne = {
+  _id: userOneID,
   name: 'Mike',
   email: 'mike@email.com',
-  password: 'testLogin'
+  password: 'testLogin',
+  tokens: [{
+    token: jwt.sign({_id: userOneID}, process.env.JWT_SECRET)
+  }]
 }
 
-///function that runs before each test and make sure that the user database is clear
-beforeEach( async() =>{
+///function that runs before each test and make sure that the user database is clear and add a new user to test the login in test
+beforeEach(async() =>{
 
 await User.deleteMany()
 await new User(userOne).save()
@@ -49,7 +57,10 @@ test('Should fail with bad credential are provided', async () =>{
 })
 
 
-// afterEach(() =>{
-//   console.log('afterEach')
-// })
-
+test('Should get profile for user', async () =>{
+  await request(app)
+  .get('/users/me')
+  .set('Authorization',`Bearer ${userOne.tokens[0].token}`)
+  .send()
+  .expect(200)
+})
