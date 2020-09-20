@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 const User = require('../src/models/user')
 const { replaceOne } = require('../src/models/user')
+const { post } = require('../src/app')
 
 
 const userOneID = new mongoose.Types.ObjectId()
@@ -37,7 +38,7 @@ test('Should sign up a new user', async () =>{
 
 
   ///Assert that the database was changed correctly
-  const user = await User.findOne({_id: response.body.user._id,"tokens.token": response.body.token});
+  const user = await User.findById(response.body.user._id)
 
   expect(user).not.toBeNull()
   
@@ -63,7 +64,7 @@ test('Should login existing user', async () =>{
 
   }).expect(200)
 
-  const user = await User.findOne({_id: response.body.user._id,"tokens.token": response.body.token});
+  const user = await User.findById(userOneID)
 
   expect(response.body.token).toBe(user.tokens[1].token)
 
@@ -94,11 +95,16 @@ test('Should get profile for user', async () =>{
 
 test('Should delete account for user', async () =>{
 
-  await request(app)
+  const response  =  await request(app)
   .delete('/users/me')
   .set('Authorization',AuthToken)
   .send()
   .expect(200)
+
+
+  const user = await User.findById(userOneID)
+
+    expect(user).toBeNull()
 
 })
 
@@ -108,4 +114,49 @@ test('Should not delete the account for unauthorized users', async () =>{
   .delete('/users/me')
   .send()
   .expect(401)
+})
+
+
+test('Should upload avatar image', async () =>{
+
+  await request(app)
+  .post('/users/me/avatar')
+  .set('Authorization', AuthToken)
+  .attach('avatar','test/fixtures/profile-pic.jpg')
+
+  const user = await User.findById(userOneID)
+
+
+        ///toEqual is like toBe but can compare object while toBe cannot be used to compare objects
+        //////expect.any(Buffer) checks if the image was saved as binary value
+  expect(user.avatar).toEqual(expect.any(Buffer))
+
+
+})
+
+test('Should update valid user filed', async () =>{
+
+ const response =  await request(app)
+  .patch('/users/me')
+  .set('Authorization', AuthToken)
+  .send({
+    name: "Change"
+  }).expect(200)
+
+
+  expect(response.body.name).not.toMatch(userOne.name)
+
+  const user = await User.findById(userOneID)
+
+  expect(response.body.name).toEqual(user.name)
+
+})
+
+test('Should not update invalid user filed', async () =>{
+  await request(app)
+  .patch('/users/me')
+  .set('Authorization', AuthToken)
+  .send({
+    passportNumber: 121233
+  }).expect(400)
 })
