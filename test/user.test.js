@@ -56,11 +56,23 @@ test('Should fail with bad credential are provided', async () =>{
 
 })
 
+const AuthToken = `Bearer ${userOne.tokens[0].token}`
 
 test('Should get profile for user', async () =>{
   await request(app)
   .get('/users/me')
-  .set('Authorization',`Bearer ${userOne.tokens[0].token}`)
+  .set('Authorization', AuthToken)
   .send()
   .expect(200)
+})
+
+
+test('Should delete account for user', async () =>{
+
+  await request(app)
+  .delete('/users/me')
+  .set('Authorization',AuthToken)
+  .send()
+  .expect(200)
+
 })
